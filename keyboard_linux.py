@@ -40,9 +40,16 @@ def run_update():
     layout.write("Terminal")
     utils.sleep(0.1)
     keyboard.send(Keycode.ENTER)
-    utils.sleep(0.2)
+    utils.sleep(0.5)
     layout.write("sudo apt update && sudo apt upgrade")
     utils.sleep(0.1)
+    keyboard.send(Keycode.ENTER)
+
+@utils.macro
+def launch_nerd_youtube():
+    keyboard.send(Keycode.WINDOWS, Keycode.R)
+    utils.sleep(0.1)
+    layout.write("firefox https://www.youtube.com/c/JeffGeerling")
     keyboard.send(Keycode.ENTER)
 
 @utils.emergency_exit
@@ -71,5 +78,6 @@ def run_linux(pmk, hardware):
     keymap[pmk.keys[1]] = launch_terminal
     keymap[pmk.keys[2]] = run_update
     keymap[pmk.keys[3]] = zoom_nuke
+    keymap[pmk.keys[4]] = launch_nerd_youtube
 
     return keymap
