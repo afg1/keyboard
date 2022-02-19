@@ -12,29 +12,49 @@ layout = KeyboardLayoutUS(keyboard)
 
 
 
+## define functions to link up with keys. Use decorators to indicate type
+
+@utils.launcher
 def launch_vscode():
     """
     Requires powertoys on windows, or maping alt + space to launcher
     """
-    keyboard.send(Keycode.LEFT_ALT, Keycode.SPACE)
+    keyboard.send(Keycode.CONTROL, Keycode.SPACE)
     keyboard.send(Keycode.DELETE)
-    layout.write(".code")
+    layout.write("Code")
     utils.sleep(0.1)
     keyboard.send(Keycode.ENTER)
 
-def launch_wsl():
-    keyboard.send(Keycode.LEFT_ALT, Keycode.SPACE)
+@utils.launcher
+def launch_terminal():
+    keyboard.send(Keycode.CONTROL, Keycode.SPACE)
     keyboard.send(Keycode.DELETE)
-    layout.write(".ubuntu")
-    # utils.sleep(0.1)
-    # layout.write("cd\n")
+    layout.write("Terminal")
     utils.sleep(0.1)
     keyboard.send(Keycode.ENTER)
 
+@utils.macro
+def run_update():
+    keyboard.send(Keycode.CONTROL, Keycode.SPACE)
+    keyboard.send(Keycode.DELETE)
+    layout.write("Terminal")
+    utils.sleep(0.1)
+    keyboard.send(Keycode.ENTER)
+    utils.sleep(0.2)
+    layout.write("sudo apt update && sudo apt upgrade")
+    utils.sleep(0.1)
+    keyboard.send(Keycode.ENTER)
+
+@utils.emergency_exit
 def zoom_nuke():
     keyboard.send(Keycode.LEFT_ALT, Keycode.Q)
 
-def run_windows(pmk, hardware):
+@utils.noop
+def noop():
+    print("This key does nothing!")
+
+
+def run_linux(pmk, hardware):
     alphabet = "abcdefghijklmnopqrstuvwxyz0123456789"
     print(alphabet)
 
@@ -44,43 +64,12 @@ def run_windows(pmk, hardware):
     for letter in alphabet:
         keycodes[letter] = layout.keycodes(letter)[0]
         
-        
-    print(keycodes)
-
-    keyboard.send(Keycode.LEFT_ALT, Keycode.SPACE)
-    keyboard.send(Keycode.LEFT_ALT, Keycode.SPACE)
+    keymap = { k : noop for k in pmk.keys} 
 
 
-    ## Open keymap
-    keymap = {"press":{}, "hold":{}}
+    keymap[pmk.keys[0]] = launch_vscode
+    keymap[pmk.keys[1]] = launch_terminal
+    keymap[pmk.keys[2]] = run_update
+    keymap[pmk.keys[3]] = zoom_nuke
 
-    keymap["press"] = {
-        0 : launch_vscode,
-        1 : launch_wsl,
-        3 : zoom_nuke
-        }
-
-    for key in pmk.keys:
-        key.hold_time = 1
-        
-        @pmk.on_press(key)
-        def press_keystrokes(key):
-            print(type(key.number))
-            keycode = keymap["press"][key.number]
-            if isinstance(keycode, list):
-                keyboard.send(*keycode)
-            elif callable(keycode):
-                keycode()
-            else:
-                layout.write(keycode)
-            
-        @pmk.on_hold(key)
-        def hold_keystrokes(key):
-            print(type(key.number))
-            keycode = keymap["hold"][key.number]
-            layout.write(keycode)
-
-
-    while True:
-        pmk.update()
-
+    return keymap
